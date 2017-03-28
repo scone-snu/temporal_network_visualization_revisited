@@ -1,0 +1,6 @@
+data_source/*
+.dropbox
+.ipynb_checkpoints
+Icon?
+community_detection/*
+.DS_Store
