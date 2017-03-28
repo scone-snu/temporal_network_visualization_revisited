@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<svg width="1000" height="2000"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+var svg = d3.select("svg"),
+    margin = {top: 50, right: 50, bottom: 50, left: 50},
+    width = svg.attr("width") - margin.left - margin.right,
+    height = svg.attr("height") - margin.top - margin.bottom,
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var yScale = d3.scaleLinear()
+    .rangeRound([0,height]);
+
+var xScale = d3.scaleBand()
+    .range([0, width]);
+
+var personScale = d3.scaleBand()
+    .range([0,100]);
+
+var line = d3.line()
+    .y(function(d) { return yScale(d.timestamp); })
+    .x(function(d) { 
+      return xScale(d.group)+personScale(d.group+'-'+d.id); 
+    })
+    // .curve(d3.curveBasis)
+
+d3.tsv("data/ds_infected.tsv", function(data) {
+
+  var dataById = d3.nest()
+    .key(function(d) { return d.id; })
+    .entries(data);
+
+  var dataByGroupId = d3.nest()
+    .key(function(d) { return d.group+'-'+d.id; })
+    .entries(data);
+
+
+
+    console.log(dataByGroupId)
+
+var dataByGroup = d3.nest()
+    .key(function(d) { return d.group; })
+    .entries(data);
+
+  yScale.domain(d3.extent(data, function(d) { return d.timestamp; }));
+  xScale.domain(dataByGroup.map( function(d) { return d.key; }));
+
+  // personScale.domain(dataByGroupId.forEach(function(datum){
+  //   console.log(datum.values)
+  //   datum.values.map( function(d) { return d.key; });
+  // }));
+
+  personScale.domain(data.map( function(d) { return d.group+'-'+d.id; }));
+
+  // console.log(data.map( function(d) { return d.group; }))
+
+  dataById.forEach(function(datum){
+    // console.log(datum.values);
+    drawLine(datum.values);
+  })
+
+  
+});
+
+function drawLine(data) {
+
+  g.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", function(d){
+        if (+d[0].id == 300) { return 'red' } 
+          else { return "steelblue" }
+      })
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("stroke-width", 1.5)
+      .attr("opacity", .5)
+      .attr("d", line);
+
+}
+
+</script>
